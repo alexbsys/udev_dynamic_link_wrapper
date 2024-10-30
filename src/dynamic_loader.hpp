@@ -64,12 +64,10 @@ bool LoadDllProc(T& t, void* mod_handle, const char* name, std::stringstream& no
 }
 
 
-namespace cmf {
 struct IDynamicModulesLoader;
-}//namespace cmf
 
 template<typename T>
-bool LoadDllProc(T& t, const std::shared_ptr<cmf::IDynamicModulesLoader>& mod_loader, void* mod_handle, const char* name) {
+bool LoadDllProc(T& t, const std::shared_ptr<IDynamicModulesLoader>& mod_loader, void* mod_handle, const char* name) {
   void* p = mod_loader->GetProcAddress(mod_handle, name);
   t = reinterpret_cast<T>(p);
   if (!p)
@@ -79,7 +77,7 @@ bool LoadDllProc(T& t, const std::shared_ptr<cmf::IDynamicModulesLoader>& mod_lo
 }
 
 template<typename T>
-bool LoadDllProc(T& t, const std::shared_ptr<cmf::IDynamicModulesLoader>& mod_loader, void* mod_handle, const char* name, std::stringstream& not_loaded_fns) {
+bool LoadDllProc(T& t, const std::shared_ptr<IDynamicModulesLoader>& mod_loader, void* mod_handle, const char* name, std::stringstream& not_loaded_fns) {
   void* p = mod_loader->GetProcAddress(mod_handle, name);
   t = reinterpret_cast<T>(p);
   if (!p) {
@@ -92,7 +90,7 @@ bool LoadDllProc(T& t, const std::shared_ptr<cmf::IDynamicModulesLoader>& mod_lo
 
 class DynamicLoaderHelper {
 public:
-  DynamicLoaderHelper(std::shared_ptr<cmf::IDynamicModulesLoader> modules_loader, void* module_handle = nullptr)
+  DynamicLoaderHelper(std::shared_ptr<IDynamicModulesLoader> modules_loader, void* module_handle = nullptr)
     :modules_loader_(modules_loader)
     ,module_handle_(module_handle) {
   }
@@ -125,7 +123,7 @@ public:
 
 private:
   std::stringstream not_loaded_fns_;
-  std::shared_ptr<cmf::IDynamicModulesLoader> modules_loader_;
+  std::shared_ptr<IDynamicModulesLoader> modules_loader_;
   void* module_handle_;
   bool has_errors_ = false;
 };
