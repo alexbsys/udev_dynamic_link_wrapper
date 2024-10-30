@@ -1,6 +1,6 @@
 # udev_dynamic_wrapper
-Wrapper for libudev functions which loads libudev.so dynamically in runtime
-Dependency-injection based module which loads libudev completely dynamically with dlopen/dlsym, without necessary for link dependency to app or library or include <libudev.h>
+Wrapper for **libudev** functions which loads **libudev.so** of any version dynamically in runtime
+Dependency-injection based module which loads libudev completely dynamically with dlopen/dlsym, without necessary for link dependency to app or library or `#include <libudev.h>`
 
 ## Advantages of dynamic loading
 For example, your app uses libudev with regular static linking
@@ -16,12 +16,12 @@ int main() {
 
 ```
 In this case:
-- package *libudev-dev* is required for build app for libudev.h
-- after build, the module has a direct dependency on *libudev.so.XX* binary, where XX is libudev version. The problem will occur on another machine, where Libudev may be a different version, or completely absent. Often your software can handle the situation when libudev is unavailable, but with static linking it won't even start
+- package **libudev-dev** is required for build app for libudev.h
+- after build, the module has a direct dependency on **libudev.so.XX** binary, where XX is libudev version. The problem will occur on another machine, where Libudev may be a different version, or completely absent. Often your software can handle the situation when libudev is unavailable, but with static linking it won't even start
 
-![screenshot](doc/udev_dynamic_ldd_hl_example.png)
+![screenshot](doc/udev_static_ldd_hl_example.png)
 
-With dynamic linking via wrapper you can work with different versions of libdev, and also handle situations in the code when it is not available. Package *libudev-dev* is not needed for the build
+With dynamic linking via wrapper you can work with different versions of libdev, and also handle situations in the code when it is not available. Package **libudev-dev** is not needed for the build
 
 ```cpp
 #include "dynamic_modules_loader.h"
@@ -60,7 +60,10 @@ Small library and example will be generated.
 For link wrapper to your project, just add -ludev_dynamic_wrapper.
 
 ## How to use
-Just replace your calls to udev_xxx functions to wrapper: udev_mod->udev_new(), udev_mod->udev_device_new_from_devnum()
+- Remove `#include <libudev.h>` from your code
+- Add includes for `udev_module_provider.h` and `dynamic_modules_loader.h`
+- Before udev functions are used, create `std::shared_ptr<IUdevModuleProvider>` instance. Code can check load result and process behavior when **libudev.so** is not available
+- Replace all calls to *udev_xxx* functions to wrapper calls, just add `udev_mod->udev_xxx` instead
 
 
 ```cpp
