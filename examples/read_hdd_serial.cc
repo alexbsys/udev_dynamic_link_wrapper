@@ -1,24 +1,19 @@
-# udev_dynamic_wrapper
-Wrapper for libudev functions which loads libudev.so dynamically in runtime
-Dependency-injection based module which loads libudev completely dynamically with dlopen/dlsym, without necessary for link dependency to app or library or include <libudev.h>
 
-## How to build
-```
-mkdir build
-cd build
-cmake ..
-make -j
-```
-Small library and example will be generated.
-For link wrapper to your project, just add -ludev_dynamic_wrapper.
-
-## How to use
-Just replace your calls to udev_xxx functions to wrapper: udev_mod->udev_new(), udev_mod->udev_device_new_from_devnum()
-
-
-```
 #include "dynamic_modules_loader.h"
 #include "udev_module_provider.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#else //_WIN32
+#include <sys/stat.h>
+#endif /*_WIN32*/
+
+#include <memory>
+#include <string>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
 
 std::string get_hdd_serial_number(std::shared_ptr<IUdevModuleProvider> udev_mod, const std::string& disk_dev_path) {
   std::string serial_number;
@@ -54,5 +49,15 @@ std::string get_hdd_serial_number(std::shared_ptr<IUdevModuleProvider> udev_mod,
   return serial_number;
 }
 
+int main(int argc, char* argv[]) {
+  std::shared_ptr<IDynamicModulesLoader> dynamic_modules_loader = CreateDynamicModulesLoader();
+  std::shared_ptr<IUdevModuleProvider> udev_mod(new UdevModuleProvider(dynamic_modules_loader, false));
+  if (!udev_mod->Load()) {
+    std::cerr << "LIBUDEV was not loaded" << std::endl;
+    return 254;
+  }
 
-```
+  auto hdd_serial = get_hdd_serial_number(udev_mod,"/dev/sda");
+  std::cout << "HDD serial: " << hdd_serial << std::endl;
+  return 0;
+}
